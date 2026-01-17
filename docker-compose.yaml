@@ -17,6 +17,7 @@ services:
 
   backend:
     image: 'ghcr.io/suna-ai/suna-backend:latest'
+    container_name: suna_backend
     platform: linux/amd64
     restart: always
     build:
@@ -40,24 +41,25 @@ services:
 
   frontend:
     init: true
+    container_name: suna_frontend
     platform: linux/amd64
     restart: always
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
       args:
-        # --- BELLEK VE PERFORMANS ---
+        # --- BELLEK VE PERFORMANS (134 HATASI ÇÖZÜMÜ) ---
         NODE_OPTIONS: '--max-old-space-size=8192'
         NEXT_TELEMETRY_DISABLED: '1'
         GENERATE_SOURCEMAP: 'false'
         
-        # --- HATALARI ZORLA ATLATMA (Exit Code 1 Çözümü) ---
+        # --- HATA ATLATMA (EXIT CODE 1 ÇÖZÜMÜ) ---
         NEXT_PUBLIC_IGNORE_BUILD_ERRORS: 'true'
         NEXT_PUBLIC_SKIP_TYPESCRIPT_CHECK: 'true'
         ESLINT_NO_DEV_ERRORS: 'true'
         DISABLE_ESLINT_PLUGIN: 'true'
         
-        # --- DEĞİŞKENLER ---
+        # --- DEĞİŞKENLER (BURASI ÇOK KRİTİK) ---
         NEXT_PUBLIC_BACKEND_URL: '${NEXT_PUBLIC_BACKEND_URL}'
         NEXT_PUBLIC_URL: '${NEXT_PUBLIC_URL}'
         NEXT_PUBLIC_ENV_MODE: 'PRODUCTION'
@@ -66,6 +68,9 @@ services:
       - '3000:3000'
     environment:
       - NODE_OPTIONS=--max-old-space-size=8192
+      # Çalışma zamanı için de değişkenleri ekleyelim
+      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+      - NEXT_PUBLIC_URL=${NEXT_PUBLIC_URL}
     depends_on:
       - backend
 
