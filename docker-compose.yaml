@@ -1,7 +1,3 @@
-# ==========================================================
-# KORTIX/SUNA - FULL OPTIMIZED PRODUCTION COMPOSE
-# ==========================================================
-
 services:
   redis:
     image: 'redis:7-alpine'
