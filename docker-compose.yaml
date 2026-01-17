@@ -48,17 +48,16 @@ services:
       context: .
       dockerfile: apps/frontend/Dockerfile
       args:
-        # --- BELLEK AYARI ---
-        NODE_OPTIONS: '--max-old-space-size=6144'
+        # --- RAM OPTİMİZASYONU ---
+        NODE_OPTIONS: '--max-old-space-size=8192'
         NEXT_TELEMETRY_DISABLED: '1'
         GENERATE_SOURCEMAP: 'false'
         
-        # --- KRİTİK: TÜM DENETİMLERİ ATLA ---
+        # --- DERLEME HATALARINI ATLAT ---
         NEXT_PUBLIC_IGNORE_BUILD_ERRORS: 'true'
         NEXT_PUBLIC_SKIP_TYPESCRIPT_CHECK: 'true'
         ESLINT_NO_DEV_ERRORS: 'true'
         DISABLE_ESLINT_PLUGIN: 'true'
-        NEXT_DISABLE_ESLINT: 'true'
         
         # --- DEĞİŞKENLER ---
         NEXT_PUBLIC_BACKEND_URL: '${NEXT_PUBLIC_BACKEND_URL}'
@@ -68,7 +67,7 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - NODE_OPTIONS=--max-old-space-size=6144
+      - NODE_OPTIONS=--max-old-space-size=8192
       - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
       - NEXT_PUBLIC_URL=${NEXT_PUBLIC_URL}
     depends_on:
