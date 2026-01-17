@@ -1,1 +1,71 @@
+services:
+  redis:
+    image: 'redis:7-alpine'
+    container_name: suna_redis
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - 'redis_data:/data'
+      - './backend/services/docker/redis.conf:/usr/local/etc/redis/redis.conf:ro'
+    command: 'redis-server /usr/local/etc/redis/redis.conf --save 60 1 --loglevel warning'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
+  backend:
+    image: 'ghcr.io/suna-ai/suna-backend:latest'
+    container_name: suna_backend
+    platform: linux/amd64
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '8000:8000'
+    volumes:
+      - './backend/.env:/app/.env:ro'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_SSL=False
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  frontend:
+    init: true
+    container_name: suna_frontend
+    platform: linux/amd64
+    restart: always
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NODE_OPTIONS: '--max-old-space-size=8192'
+        NEXT_TELEMETRY_DISABLED: '1'
+        GENERATE_SOURCEMAP: 'false'
+        NEXT_PUBLIC_IGNORE_BUILD_ERRORS: 'true'
+        NEXT_PUBLIC_SKIP_TYPESCRIPT_CHECK: 'true'
+        # DEĞİŞKENLERİ BURADA SABİTLEDİK:
+        NEXT_PUBLIC_BACKEND_URL: 'http://31.220.79.244:8000/v1'
+        NEXT_PUBLIC_URL: 'http://31.220.79.244:3000'
+        NEXT_PUBLIC_ENV_MODE: 'PRODUCTION'
+        PNPM_LOCKFILE_MODE: '--no-frozen-lockfile'
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=8192
+      - NEXT_PUBLIC_BACKEND_URL=http://31.220.79.244:8000/v1
+      - NEXT_PUBLIC_URL=http://31.220.79.244:3000
+    depends_on:
+      - backend
+
+volumes:
+  redis_data:
